@@ -2,11 +2,12 @@ services:
   voicebox:
     build: .
     container_name: voicebox
+    image: voicebox:cu128
     restart: unless-stopped
 
     ports:
       # Bind to localhost only for security
-      - "127.0.0.1:17493:17493"
+      - "192.168.1.131:30107:17493"
 
     volumes:
       # Bind-mount for generated audio (customize the host path as needed)
@@ -23,6 +24,8 @@ services:
     environment:
       - LOG_LEVEL=info
       - NUMBA_CACHE_DIR=/tmp/numba_cache
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
     networks:
       - voicebox-net
@@ -32,6 +35,14 @@ services:
         limits:
           cpus: '4'
           memory: 8G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+    # Legacy fallback (optional, useful outside swarm or older setups)
+    runtime: nvidia
 
 networks:
   voicebox-net:
